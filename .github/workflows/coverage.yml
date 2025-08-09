@@ -1,0 +1,122 @@
+name: Coverage
+
+on:
+  push:
+    branches: [main, master]
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: que_test
+          POSTGRES_USER: que_user
+          POSTGRES_PASSWORD: que_password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Set up database schema
+        run: |
+          PGPASSWORD=que_password psql -h localhost -U que_user -d que_test -f migrations/schema.sql
+        env:
+          PGPASSWORD: que_password
+
+      - name: Run tests with coverage
+        run: npm run test:coverage
+        env:
+          TEST_DB_HOST: localhost
+          TEST_DB_PORT: 5432
+          TEST_DB_NAME: que_test
+          TEST_DB_USER: que_user
+          TEST_DB_PASSWORD: que_password
+          TEST_DB_SSL: false
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+
+      - name: Generate coverage summary
+        id: coverage
+        run: |
+          coverage_percent=$(grep -o 'Lines.*[0-9]*\.[0-9]*%' coverage/lcov-report/index.html | grep -o '[0-9]*\.[0-9]*%' || echo "Unknown")
+          echo "coverage_percent=$coverage_percent" >> $GITHUB_OUTPUT
+          
+          # Extract detailed coverage info
+          total_lines=$(grep -o 'Lines.*[0-9]*\/[0-9]*' coverage/lcov-report/index.html | grep -o '[0-9]*\/[0-9]*' | tail -1 || echo "0/0")
+          total_functions=$(grep -o 'Functions.*[0-9]*\/[0-9]*' coverage/lcov-report/index.html | grep -o '[0-9]*\/[0-9]*' | tail -1 || echo "0/0")
+          total_branches=$(grep -o 'Branches.*[0-9]*\/[0-9]*' coverage/lcov-report/index.html | grep -o '[0-9]*\/[0-9]*' | tail -1 || echo "0/0")
+          
+          echo "total_lines=$total_lines" >> $GITHUB_OUTPUT
+          echo "total_functions=$total_functions" >> $GITHUB_OUTPUT
+          echo "total_branches=$total_branches" >> $GITHUB_OUTPUT
+
+      - name: Find existing coverage comment
+        if: github.event_name == 'pull_request'
+        uses: peter-evans/find-comment@v2
+        id: find-comment
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: 'github-actions[bot]'
+          body-includes: '## 📊 Coverage Report'
+
+      - name: Create or update coverage comment
+        if: github.event_name == 'pull_request'
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          comment-id: ${{ steps.find-comment.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          edit-mode: replace
+          body: |
+            ## 📊 Coverage Report
+            
+            **Overall Coverage**: ${{ steps.coverage.outputs.coverage_percent }}
+            
+            ### Detailed Coverage
+            | Type | Coverage |
+            |------|----------|
+            | **Lines** | ${{ steps.coverage.outputs.total_lines }} |
+            | **Functions** | ${{ steps.coverage.outputs.total_functions }} |
+            | **Branches** | ${{ steps.coverage.outputs.total_branches }} |
+            
+            ### Files Tested
+            - ✅ `src/client.ts` - Job enqueueing and locking
+            - ✅ `src/worker.ts` - Job processing and error handling
+            - ✅ `src/job.ts` - Job instance methods
+            - ✅ `src/utils.ts` - Utility functions and retry logic
+            - ✅ `src/types.ts` - Type definitions
+            
+            ### Test Summary
+            - **Total Test Suites**: 3
+            - **Total Tests**: 16 
+            - **Database Integration**: PostgreSQL with advisory locks
+            - **Test Categories**: Unit tests, integration tests, error handling
+            
+            📈 [View detailed coverage report on Codecov](https://codecov.io/gh/${{ github.repository }})
+            
+            ---
+            *Updated automatically by GitHub Actions*

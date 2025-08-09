@@ -1,5 +1,10 @@
 # que-ts
 
+[![Test](https://github.com/USERNAME/que-ts/actions/workflows/test.yml/badge.svg)](https://github.com/USERNAME/que-ts/actions/workflows/test.yml)
+[![Coverage](https://github.com/USERNAME/que-ts/actions/workflows/coverage.yml/badge.svg)](https://github.com/USERNAME/que-ts/actions/workflows/coverage.yml)
+[![Security](https://github.com/USERNAME/que-ts/actions/workflows/security.yml/badge.svg)](https://github.com/USERNAME/que-ts/actions/workflows/security.yml)
+[![npm version](https://badge.fury.io/js/que-ts.svg)](https://badge.fury.io/js/que-ts)
+
 A TypeScript job queue library for PostgreSQL, compatible with Ruby Que and que-go implementations.
 
 ## Features
@@ -287,6 +292,24 @@ See [DOCKER.md](DOCKER.md) for detailed Docker documentation.
 ### Manual Setup
 
 If you prefer not to use Docker, ensure PostgreSQL is running and create the database schema manually using `migrations/schema.sql`.
+
+## Continuous Integration
+
+The project uses GitHub Actions for CI/CD with the following workflows:
+
+- **Test**: Runs on every PR and push to main
+  - Tests against Node.js 18.x, 20.x, and 22.x
+  - Runs linter, TypeScript compiler, and test suite
+  - Includes package build verification
+  
+- **Coverage**: Runs on pushes to main
+  - Generates test coverage reports
+  - Uploads coverage data to Codecov
+
+- **Security**: Runs on PRs, pushes, and weekly
+  - npm audit for vulnerability scanning
+  - Dependency review for PRs
+  - Automated security monitoring
 
 ## License
 
