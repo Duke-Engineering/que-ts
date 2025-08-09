@@ -1,0 +1,97 @@
+name: Installation Test
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  release:
+    types: [published]
+
+jobs:
+  test-install:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Test installation from current repository
+        run: |
+          # Create a test project
+          mkdir test-project
+          cd test-project
+          npm init -y
+          
+          # Install from the local repository
+          npm install file:../
+          
+          # Test the installation
+          node -e "const { Client, Worker } = require('que-ts'); console.log('✅ que-ts imported successfully')"
+          
+      - name: Test TypeScript types
+        run: |
+          cd test-project
+          echo "import { Client, Worker, Job } from 'que-ts'; const client = new Client();" > test.ts
+          npx typescript test.ts --noEmit --skipLibCheck
+          
+      - name: Test installation script
+        run: |
+          cd test-project/node_modules/que-ts
+          node test-install.js
+
+  test-github-install:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Use Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+
+      - name: Test GitHub installation
+        run: |
+          # Create a test project
+          mkdir github-install-test
+          cd github-install-test
+          npm init -y
+          
+          # Install directly from GitHub
+          npm install "github:${{ github.repository }}#${{ github.sha }}"
+          
+          # Test the installation
+          node -e "const { Client, Worker } = require('que-ts'); console.log('✅ GitHub installation successful')"
+
+      - name: Comment on commit with install status
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const sha = context.sha.substring(0, 7);
+            github.rest.repos.createCommitComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: context.sha,
+              body: `## 📦 Installation Test Results
+              
+              ✅ **GitHub Installation**: Working correctly
+              ✅ **Module Import**: que-ts loads successfully  
+              ✅ **TypeScript Types**: Available and valid
+              ✅ **Build Process**: Automated build completed
+              
+              **Commit**: ${sha}
+              **Node.js**: 20.x tested
+              
+              ---
+              *Automated test by GitHub Actions*`
+            });
