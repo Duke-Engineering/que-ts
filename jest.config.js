@@ -24,8 +24,11 @@ module.exports = {
     'html'
   ],
   setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
+  globalTeardown: '<rootDir>/tests/teardown.ts',
   testTimeout: 30000, // Increased for Docker container startup
   verbose: true,
   // Don't exit on first test failure when running with Docker
-  bail: false
+  bail: false,
+  // Force exit to handle lingering connections
+  forceExit: true
 };

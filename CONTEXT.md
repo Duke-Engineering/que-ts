@@ -214,6 +214,7 @@ que-ts/
 ├── tests/
 │   ├── setup.ts           # Test database utilities
 │   ├── client.test.ts     # Client functionality tests
+│   ├── worker.test.ts     # Worker functionality tests
 │   └── utils.test.ts      # Utility function tests
 ├── migrations/
 │   └── schema.sql         # Complete database schema
@@ -238,8 +239,8 @@ que-ts/
 2. **Exponential Backoff**: Uses `intPow(errorCount, 4)` matching que-go behavior
 3. **Connection Pooling**: pg.Pool with configurable max connections
 4. **Transaction Support**: `enqueueInTx()` method for transactional job creation
-5. **Type Safety**: Complete TypeScript interfaces for all components
-6. **Testing Infrastructure**: Jest setup with Docker-based PostgreSQL
+5. **Type Safety**: Complete TypeScript interfaces with proper JSON types (JSONValue, JSONArray, JSONObject)
+6. **Testing Infrastructure**: Jest setup with Docker-based PostgreSQL, force exit for connection cleanup
 7. **Docker Development Environment**: Complete containerized setup with Adminer
 8. **NPM Package Ready**: Configured for publishing with declaration files
 

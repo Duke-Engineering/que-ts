@@ -15,6 +15,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "test:debug": "jest --detectOpenHandles",
     "test:docker": "npm run docker:up && npm run test && npm run docker:down",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",

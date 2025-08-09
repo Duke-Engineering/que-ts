@@ -16,7 +16,7 @@ export class JobInstance implements Job {
   private pool: Pool;
 
   constructor(row: JobRow, pool: Pool) {
-    this.id = row.job_id;
+    this.id = parseInt(row.job_id, 10);
     this.queue = row.queue;
     this.priority = row.priority;
     this.runAt = row.run_at;

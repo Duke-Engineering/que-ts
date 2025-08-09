@@ -32,7 +32,7 @@ export class Worker {
 
   async workOne(): Promise<boolean> {
     const job = await this.client.lockJob(this.queue);
-    
+
     if (!job) {
       return false;
     }
@@ -47,7 +47,7 @@ export class Worker {
     }
 
     this.running = false;
-    
+
     if (this.timeoutId) {
       clearTimeout(this.timeoutId);
       this.timeoutId = null;
@@ -64,7 +64,7 @@ export class Worker {
     while (this.running) {
       try {
         const processed = await this.workOne();
-        
+
         if (!processed && this.running) {
           await new Promise<void>((resolve) => {
             this.timeoutId = setTimeout(resolve, this.interval);
@@ -72,7 +72,7 @@ export class Worker {
         }
       } catch (error) {
         console.error('Worker error:', error);
-        
+
         if (this.running) {
           await new Promise<void>((resolve) => {
             this.timeoutId = setTimeout(resolve, this.interval);
@@ -84,7 +84,7 @@ export class Worker {
 
   private async processJob(job: Job): Promise<void> {
     const workFunc = this.workMap[job.jobClass];
-    
+
     if (!workFunc) {
       await job.error(`No work function registered for job class: ${job.jobClass}`);
       return;

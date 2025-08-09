@@ -1,5 +1,5 @@
 import { Pool, PoolClient } from 'pg';
-import { Job, EnqueueOptions, ClientConfig, JobRow } from './types';
+import { Job, EnqueueOptions, ClientConfig, JobRow, JSONArray } from './types';
 import { JobInstance } from './job';
 import { SQL_QUERIES } from './sql';
 import { formatJobArgs } from './utils';
@@ -17,12 +17,14 @@ export class Client {
       password: config.password,
       ssl: config.ssl,
       max: config.maxConnections || 10,
+      idleTimeoutMillis: 5000, // Close idle connections after 5 seconds
+      connectionTimeoutMillis: 5000, // Timeout connection attempts after 5 seconds
     });
   }
 
   async enqueue(
     jobClass: string,
-    args: any[] = [],
+    args: JSONArray = [],
     options: EnqueueOptions = {}
   ): Promise<Job> {
     const {
@@ -48,7 +50,7 @@ export class Client {
   async enqueueInTx(
     client: PoolClient,
     jobClass: string,
-    args: any[] = [],
+    args: JSONArray = [],
     options: EnqueueOptions = {}
   ): Promise<Job> {
     const {
@@ -84,5 +86,7 @@ export class Client {
 
   async close(): Promise<void> {
     await this.pool.end();
+    // Small delay to ensure all connections are fully closed
+    await new Promise(resolve => setTimeout(resolve, 50));
   }
 }
