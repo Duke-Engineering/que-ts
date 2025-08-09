@@ -13,6 +13,7 @@
   "scripts": {
     "build": "tsc",
     "prepare": "npm run build",
+    "postinstall": "node test-install.js",
     "dev": "tsc --watch",
     "test": "jest",
     "test:watch": "jest --watch",
