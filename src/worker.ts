@@ -9,11 +9,12 @@ export class Worker {
   private running: boolean = false;
   private shutdownPromise: Promise<void> | null = null;
   private timeoutId: NodeJS.Timeout | null = null;
+  private timeoutResolve: (() => void) | null = null;
 
   constructor(clientConfig: ClientConfig = {}, options: WorkerOptions = {}) {
     this.client = new Client(clientConfig);
     this.queue = options.queue || '';
-    this.interval = options.interval || 5000;
+    this.interval = options.interval || 60 * 1000;
   }
 
   register(jobClass: string, workFunc: WorkFunction): void {
@@ -52,6 +53,12 @@ export class Worker {
       clearTimeout(this.timeoutId);
       this.timeoutId = null;
     }
+    
+    // Resolve any pending timeout promises
+    if (this.timeoutResolve) {
+      this.timeoutResolve();
+      this.timeoutResolve = null;
+    }
 
     if (this.shutdownPromise) {
       await this.shutdownPromise;
@@ -67,7 +74,11 @@ export class Worker {
 
         if (!processed && this.running) {
           await new Promise<void>((resolve) => {
-            this.timeoutId = setTimeout(resolve, this.interval);
+            this.timeoutResolve = resolve;
+            this.timeoutId = setTimeout(() => {
+              this.timeoutResolve = null;
+              resolve();
+            }, this.interval);
           });
         }
       } catch (error) {
@@ -75,7 +86,11 @@ export class Worker {
 
         if (this.running) {
           await new Promise<void>((resolve) => {
-            this.timeoutId = setTimeout(resolve, this.interval);
+            this.timeoutResolve = resolve;
+            this.timeoutId = setTimeout(() => {
+              this.timeoutResolve = null;
+              resolve();
+            }, this.interval);
           });
         }
       }

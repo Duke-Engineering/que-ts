@@ -12,7 +12,9 @@
       "Bash(npx tsc:*)",
       "Bash(npm run test:*)",
       "Bash(npm run build:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(npm test:*)",
+      "Bash(timeout 10 npm test -- ./tests/impl)"
     ],
     "deny": []
   }
