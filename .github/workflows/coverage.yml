@@ -1,0 +1,64 @@
+name: Coverage
+
+on:
+  pull_request:
+    branches: [main, master]
+  push:
+    branches: [main, master]
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: que_test
+          POSTGRES_USER: que_user
+          POSTGRES_PASSWORD: que_password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Set up database schema
+        run: |
+          PGPASSWORD=que_password psql -h localhost -U que_user -d que_test -f migrations/schema.sql
+        env:
+          PGPASSWORD: que_password
+
+      - name: Run tests with coverage
+        run: npm run test:coverage
+        env:
+          TEST_DB_HOST: localhost
+          TEST_DB_PORT: 5432
+          TEST_DB_NAME: que_test
+          TEST_DB_USER: que_user
+          TEST_DB_PASSWORD: que_password
+          TEST_DB_SSL: false
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: true

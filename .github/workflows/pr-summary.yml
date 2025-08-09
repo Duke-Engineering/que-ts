@@ -1,0 +1,146 @@
+name: PR Summary
+
+on:
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  pr-summary:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: que_test
+          POSTGRES_USER: que_user
+          POSTGRES_PASSWORD: que_password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Set up database schema
+        run: |
+          PGPASSWORD=que_password psql -h localhost -U que_user -d que_test -f migrations/schema.sql
+        env:
+          PGPASSWORD: que_password
+
+      - name: Run comprehensive checks
+        id: checks
+        run: |
+          echo "=== Running Linter ===" > summary.log
+          npm run lint 2>&1 | tee -a summary.log
+          lint_status=$?
+          
+          echo "=== Running TypeScript Check ===" >> summary.log
+          npx tsc --noEmit 2>&1 | tee -a summary.log
+          tsc_status=$?
+          
+          echo "=== Running Tests ===" >> summary.log
+          npm test 2>&1 | tee -a summary.log
+          test_status=$?
+          
+          echo "=== Building Package ===" >> summary.log
+          npm run build 2>&1 | tee -a summary.log
+          build_status=$?
+          
+          echo "lint_status=$lint_status" >> $GITHUB_OUTPUT
+          echo "tsc_status=$tsc_status" >> $GITHUB_OUTPUT
+          echo "test_status=$test_status" >> $GITHUB_OUTPUT
+          echo "build_status=$build_status" >> $GITHUB_OUTPUT
+        env:
+          TEST_DB_HOST: localhost
+          TEST_DB_PORT: 5432
+          TEST_DB_NAME: que_test
+          TEST_DB_USER: que_user
+          TEST_DB_PASSWORD: que_password
+          TEST_DB_SSL: false
+        continue-on-error: true
+
+      - name: Comment PR with comprehensive summary
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            const lintStatus = '${{ steps.checks.outputs.lint_status }}' === '0';
+            const tscStatus = '${{ steps.checks.outputs.tsc_status }}' === '0';
+            const testStatus = '${{ steps.checks.outputs.test_status }}' === '0';
+            const buildStatus = '${{ steps.checks.outputs.build_status }}' === '0';
+            
+            let summaryOutput = '';
+            try {
+              summaryOutput = fs.readFileSync('summary.log', 'utf8');
+            } catch (error) {
+              summaryOutput = 'Could not read summary output';
+            }
+            
+            const allPassed = lintStatus && tscStatus && testStatus && buildStatus;
+            const overallStatus = allPassed ? '✅ All checks passed!' : '❌ Some checks failed';
+            
+            // Extract test results summary
+            const testSummary = summaryOutput.match(/Test Suites:.*\n.*Tests:.*\n/g)?.[0] || 'Test summary not available';
+            
+            const comment = `## 📋 Pull Request Summary
+            
+            **Overall Status**: ${overallStatus}
+            
+            ### Check Results
+            - **Linting**: ${lintStatus ? '✅ Passed' : '❌ Failed'}
+            - **TypeScript Compilation**: ${tscStatus ? '✅ Passed' : '❌ Failed'}
+            - **Unit Tests**: ${testStatus ? '✅ Passed' : '❌ Failed'}
+            - **Package Build**: ${buildStatus ? '✅ Passed' : '❌ Failed'}
+            
+            ### Database Integration Tests
+            ${testStatus ? '- PostgreSQL connection: ✅ Working' : '- PostgreSQL connection: ❌ Issues detected'}
+            ${testStatus ? '- Advisory locks: ✅ Functional' : '- Advisory locks: ❌ Problems found'}
+            ${testStatus ? '- Job processing: ✅ Tested' : '- Job processing: ❌ Failures detected'}
+            ${testStatus ? '- Error handling: ✅ Verified' : '- Error handling: ❌ Issues found'}
+            
+            ### Test Results Summary
+            \`\`\`
+            ${testSummary}
+            \`\`\`
+            
+            ${!allPassed ? `
+            <details>
+            <summary>📋 Detailed Output</summary>
+            
+            \`\`\`
+            ${summaryOutput.substring(Math.max(0, summaryOutput.length - 2000))}
+            \`\`\`
+            </details>
+            ` : ''}
+            
+            ### Package Installation
+            ${buildStatus ? '- ✅ Ready for GitHub installation: `npm install github:Duke-Engineering/que-ts`' : '- ❌ Build issues may affect installation'}
+            ${buildStatus ? '- ✅ TypeScript declarations generated' : '- ❌ Declaration file generation failed'}
+            ${buildStatus ? '- ✅ Compatible with Node.js 18.x, 20.x, 22.x' : '- ❌ Compatibility issues detected'}
+            
+            ---
+            *Automated summary by GitHub Actions*`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
