@@ -15,10 +15,16 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "test:docker": "npm run docker:up && npm run test && npm run docker:down",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
     "prepublishOnly": "npm run build && npm test",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f postgres",
+    "docker:clean": "docker-compose down -v --remove-orphans",
+    "docker:reset": "npm run docker:clean && npm run docker:up"
   },
   "keywords": [
     "job-queue",
@@ -36,6 +42,7 @@
     "@types/pg": "^8.10.2",
     "@typescript-eslint/eslint-plugin": "^6.7.0",
     "@typescript-eslint/parser": "^6.7.0",
+    "dotenv": "^17.2.1",
     "eslint": "^8.49.0",
     "jest": "^29.7.0",
     "ts-jest": "^29.1.1",

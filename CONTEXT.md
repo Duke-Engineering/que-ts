@@ -174,12 +174,15 @@ que-ts/
 - [x] Test utilities and database setup
 - [x] API documentation in README
 - [x] Usage examples
+- [x] Docker development environment
+- [x] Docker Compose with PostgreSQL and Adminer
+- [x] Automated test database setup
 
 ### 🚧 Phase 5: Interoperability Validation (PENDING)
 - [ ] Test compatibility with Ruby Que
 - [ ] Test compatibility with que-go
 - [ ] Cross-language job processing validation
-- [ ] Integration tests with actual PostgreSQL database
+- [x] Integration tests with actual PostgreSQL database (Docker-based)
 
 ## Notes and Considerations
 
@@ -216,11 +219,16 @@ que-ts/
 │   └── schema.sql         # Complete database schema
 ├── examples/
 │   └── basic-usage.ts     # Working usage example
+├── docker/
+│   └── init-test-db.sql   # Docker database initialization
 ├── package.json           # NPM configuration with all dependencies
 ├── tsconfig.json          # TypeScript configuration
 ├── jest.config.js         # Jest test configuration
 ├── .eslintrc.js           # ESLint configuration
 ├── .gitignore             # Git ignore rules
+├── .env.test              # Test environment variables
+├── docker-compose.yml     # PostgreSQL + Adminer setup
+├── DOCKER.md              # Docker development documentation
 └── README.md              # Complete documentation
 ```
 
@@ -231,13 +239,15 @@ que-ts/
 3. **Connection Pooling**: pg.Pool with configurable max connections
 4. **Transaction Support**: `enqueueInTx()` method for transactional job creation
 5. **Type Safety**: Complete TypeScript interfaces for all components
-6. **Testing Infrastructure**: Jest setup with database utilities
-7. **NPM Package Ready**: Configured for publishing with declaration files
+6. **Testing Infrastructure**: Jest setup with Docker-based PostgreSQL
+7. **Docker Development Environment**: Complete containerized setup with Adminer
+8. **NPM Package Ready**: Configured for publishing with declaration files
 
 ### Dependencies Installed
 - **Runtime**: `pg@^8.11.3` for PostgreSQL connectivity
-- **Development**: TypeScript, Jest, ESLint with full type definitions
+- **Development**: TypeScript, Jest, ESLint with full type definitions, dotenv
 - **Build System**: Configured for declaration file generation
+- **Docker**: PostgreSQL 15 + Adminer for development and testing
 
 ## Success Criteria
 
@@ -249,6 +259,9 @@ que-ts/
 - [x] Worker system with graceful shutdown
 - [x] Multiple queue support
 - [x] NPM package structure ready for publishing
+- [x] Docker development environment with PostgreSQL and Adminer
+- [x] Automated test database setup and teardown
+- [x] Environment-based configuration for tests
 
 ### 🚧 Pending Validation
 - [ ] Jobs enqueued in TypeScript can be processed by Ruby/Go workers

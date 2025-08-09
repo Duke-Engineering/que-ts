@@ -1,3 +1,6 @@
+// Load test environment variables
+require('dotenv').config({ path: '.env.test' });
+
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
@@ -21,6 +24,8 @@ module.exports = {
     'html'
   ],
   setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
-  testTimeout: 10000,
-  verbose: true
+  testTimeout: 30000, // Increased for Docker container startup
+  verbose: true,
+  // Don't exit on first test failure when running with Docker
+  bail: false
 };

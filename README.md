@@ -21,7 +21,24 @@ npm install que-ts
 
 ### Database Setup
 
-First, create the required database table:
+#### Option 1: Using Docker (Recommended for Development)
+
+```bash
+# Start PostgreSQL with Docker
+npm run docker:up
+
+# Run tests
+npm test
+
+# Stop when done
+npm run docker:down
+```
+
+For detailed Docker usage, see [DOCKER.md](DOCKER.md).
+
+#### Option 2: Manual Database Setup
+
+Create the required database table:
 
 ```sql
 CREATE TABLE que_jobs (
@@ -223,19 +240,46 @@ You can enqueue jobs in one language and process them in another, or run workers
 
 ## Development
 
+### Using Docker (Recommended)
+
 ```bash
 # Install dependencies
 npm install
 
+# Start PostgreSQL with Docker
+npm run docker:up
+
 # Run tests
 npm test
+
+# Run tests in watch mode
+npm run test:watch
 
 # Build
 npm run build
 
 # Lint
 npm run lint
+
+# Stop Docker containers
+npm run docker:down
 ```
+
+### Docker Commands
+
+- `npm run docker:up` - Start PostgreSQL and Adminer
+- `npm run docker:down` - Stop containers  
+- `npm run docker:logs` - View PostgreSQL logs
+- `npm run docker:clean` - Remove containers and volumes
+- `npm run test:docker` - Full test cycle with Docker
+
+Access database admin at http://localhost:8080 (user: `que_user`, password: `que_password`)
+
+See [DOCKER.md](DOCKER.md) for detailed Docker documentation.
+
+### Manual Setup
+
+If you prefer not to use Docker, ensure PostgreSQL is running and create the database schema manually using `migrations/schema.sql`.
 
 ## License
 

@@ -4,13 +4,23 @@ export const TEST_DB_CONFIG = {
   host: process.env.TEST_DB_HOST || 'localhost',
   port: parseInt(process.env.TEST_DB_PORT || '5432'),
   database: process.env.TEST_DB_NAME || 'que_test',
-  user: process.env.TEST_DB_USER || 'postgres',
-  password: process.env.TEST_DB_PASSWORD || '',
+  user: process.env.TEST_DB_USER || 'que_user',
+  password: process.env.TEST_DB_PASSWORD || 'que_password',
+  ssl: process.env.TEST_DB_SSL === 'true' ? true : false,
 };
 
 export async function setupTestDatabase(): Promise<Pool> {
   const pool = new Pool(TEST_DB_CONFIG);
   
+  // Test connection
+  try {
+    await pool.query('SELECT 1');
+  } catch (error) {
+    throw new Error(`Failed to connect to test database: ${error}`);
+  }
+
+  // The table should already exist from Docker initialization
+  // But we'll ensure it exists for non-Docker environments
   await pool.query(`
     CREATE TABLE IF NOT EXISTS que_jobs (
       priority    smallint    NOT NULL DEFAULT 100,
