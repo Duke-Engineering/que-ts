@@ -1,0 +1,132 @@
+name: Security
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  schedule:
+    # Run security scan weekly on Mondays at 9 AM UTC
+    - cron: '0 9 * * 1'
+
+jobs:
+  security-audit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm audit
+        run: npm audit --audit-level=moderate
+
+      - name: Run npm audit fix (dry run)
+        run: npm audit fix --dry-run
+
+      - name: Generate security report
+        if: always()
+        id: security-report
+        run: |
+          # Run audit and capture output
+          audit_output=$(npm audit --json 2>/dev/null || echo '{"vulnerabilities": {}, "metadata": {"totalDependencies": 0}}')
+          
+          # Parse audit results
+          vulnerabilities=$(echo "$audit_output" | jq -r '.metadata.vulnerabilities // 0')
+          total_deps=$(echo "$audit_output" | jq -r '.metadata.totalDependencies // 0')
+          
+          # Check if any high/critical vulnerabilities
+          high_critical=$(echo "$audit_output" | jq -r '.vulnerabilities | to_entries[] | select(.value.severity == "high" or .value.severity == "critical") | length' | wc -l)
+          
+          echo "vulnerabilities=$vulnerabilities" >> $GITHUB_OUTPUT
+          echo "total_deps=$total_deps" >> $GITHUB_OUTPUT
+          echo "high_critical=$high_critical" >> $GITHUB_OUTPUT
+          
+          # Get audit summary if vulnerabilities exist
+          if [ "$vulnerabilities" -gt 0 ]; then
+            npm audit --audit-level=low > audit_summary.txt 2>&1 || echo "Audit completed with findings" > audit_summary.txt
+          else
+            echo "No vulnerabilities found" > audit_summary.txt
+          fi
+
+      - name: Comment PR - Security Results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const vulnerabilities = '${{ steps.security-report.outputs.vulnerabilities }}';
+            const totalDeps = '${{ steps.security-report.outputs.total_deps }}';
+            const highCritical = '${{ steps.security-report.outputs.high_critical }}';
+            
+            let auditSummary = '';
+            try {
+              auditSummary = fs.readFileSync('audit_summary.txt', 'utf8');
+            } catch (error) {
+              auditSummary = 'Could not read audit summary';
+            }
+            
+            const securityStatus = vulnerabilities === '0' ? '🟢 Secure' : 
+                                 highCritical === '0' ? '🟡 Low Risk' : '🔴 High Risk';
+            
+            const comment = `## 🔒 Security Scan Results
+            
+            **Status**: ${securityStatus}
+            **Total Dependencies**: ${totalDeps}
+            **Vulnerabilities Found**: ${vulnerabilities}
+            **High/Critical Issues**: ${highCritical}
+            
+            ### Security Summary
+            ${vulnerabilities === '0' ? 
+              '✅ **No security vulnerabilities detected**\n✅ All dependencies are secure\n✅ No action required' :
+              `⚠️ **${vulnerabilities} vulnerabilities found**\n${highCritical === '0' ? '✅ No high/critical issues' : '❌ High/critical issues detected'}`
+            }
+            
+            ### Dependency Analysis
+            - **Runtime Dependencies**: PostgreSQL driver (pg)
+            - **Dev Dependencies**: TypeScript, Jest, ESLint
+            - **Security Tools**: npm audit, GitHub dependency review
+            
+            ${vulnerabilities !== '0' ? 
+              '### Recommended Actions\n1. Review vulnerability details below\n2. Update affected dependencies\n3. Run `npm audit fix` to auto-resolve issues\n4. Test thoroughly after updates' :
+              ''
+            }
+            
+            <details>
+            <summary>📋 Detailed Audit Report</summary>
+            
+            \`\`\`
+            ${auditSummary.substring(0, 2000)}${auditSummary.length > 2000 ? '\n... (truncated)' : ''}
+            \`\`\`
+            </details>
+            
+            ---
+            *Security scan performed by GitHub Actions*`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+  dependency-review:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v3
+        with:
+          fail-on-severity: moderate
