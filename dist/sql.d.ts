@@ -1,0 +1,8 @@
+export declare const SQL_QUERIES: {
+    readonly ENQUEUE_JOB: "\n    INSERT INTO que_jobs (job_class, args, priority, run_at, queue)\n    VALUES ($1, $2, $3, $4, $5)\n    RETURNING job_id, priority, run_at, job_class, args, error_count, last_error, queue\n  ";
+    readonly LOCK_JOB: "\n    WITH RECURSIVE jobs AS (\n      SELECT (j).*, pg_try_advisory_lock((j).job_id) AS locked\n      FROM (\n        SELECT j\n        FROM que_jobs AS j\n        WHERE queue = $1 AND run_at <= now() AND error_count < 5\n        ORDER BY priority, run_at, job_id\n        LIMIT 1\n      ) AS t1\n      UNION ALL (\n        SELECT (j).*, pg_try_advisory_lock((j).job_id) AS locked\n        FROM (\n          SELECT (\n            SELECT j\n            FROM que_jobs AS j\n            WHERE queue = $1 AND run_at <= now() AND error_count < 5\n            AND (priority, run_at, job_id) > (jobs.priority, jobs.run_at, jobs.job_id)\n            ORDER BY priority, run_at, job_id\n            LIMIT 1\n          ) AS j\n          FROM jobs\n          WHERE jobs.job_id IS NOT NULL\n          LIMIT 1\n        ) AS t1\n      )\n    )\n    SELECT job_id, priority, run_at, job_class, args, error_count, last_error, queue\n    FROM jobs\n    WHERE locked\n    LIMIT 1\n  ";
+    readonly DELETE_JOB: "\n    DELETE FROM que_jobs\n    WHERE job_id = $1\n  ";
+    readonly UPDATE_JOB_ERROR: "\n    UPDATE que_jobs\n    SET error_count = error_count + 1,\n        last_error = $2,\n        run_at = now() + interval '%d seconds'\n    WHERE job_id = $1\n  ";
+    readonly UNLOCK_JOB: "\n    SELECT pg_advisory_unlock($1)\n  ";
+};
+//# sourceMappingURL=sql.d.ts.map
