@@ -4,7 +4,7 @@ A TypeScript job queue library for PostgreSQL, compatible with Ruby Que and que-
 
 ## Features
 
-- **Cross-language compatibility**: Works with Ruby Que and que-go job queues
+- **Cross-language compatibility**: Works with [Que (Ruby)](https://github.com/chanks/que) and [que-go](https://github.com/bgentry/que-go) job queues
 - **PostgreSQL advisory locks**: Reliable job processing with no duplicate execution
 - **TypeScript support**: Full type safety with comprehensive interfaces
 - **Retry logic**: Exponential backoff for failed jobs
@@ -233,10 +233,17 @@ const criticalWorker = new Worker(config, { queue: 'critical' });
 
 que-ts is designed to be fully compatible with:
 
-- [Ruby Que](https://github.com/chanks/que)
-- [que-go](https://github.com/bgentry/que-go)
+- **[Ruby Que](https://github.com/chanks/que)** - The original Ruby implementation
+- **[que-go](https://github.com/bgentry/que-go)** - Golang port (currently unmaintained)
 
 You can enqueue jobs in one language and process them in another, or run workers in multiple languages simultaneously.
+
+## Related Projects
+
+### Official Implementations
+- **[Que (Ruby)](https://github.com/chanks/que)** - The original and most mature implementation
+- **[que-go](https://github.com/bgentry/que-go)** - Go implementation (unmaintained, but stable)
+- **que-ts** - This TypeScript/Node.js implementation
 
 ## Development
 
