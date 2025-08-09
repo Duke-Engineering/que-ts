@@ -13,7 +13,6 @@
   "scripts": {
     "build": "tsc",
     "prepare": "npm run build",
-    "postinstall": "node test-install.js",
     "dev": "tsc --watch",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -60,10 +59,10 @@
   },
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/Duke-Engineering/que-ts.git"
   },
   "bugs": {
-    "url": ""
+    "url": "https://github.com/Duke-Engineering/que-ts/issues"
   },
-  "homepage": ""
+  "homepage": "https://github.com/Duke-Engineering/que-ts#readme"
 }

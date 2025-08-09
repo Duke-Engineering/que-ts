@@ -1,5 +1,10 @@
 # que-ts
 
+[![Test](https://github.com/Duke-Engineering/que-ts/actions/workflows/test.yml/badge.svg)](https://github.com/Duke-Engineering/que-ts/actions/workflows/test.yml)
+[![Coverage](https://github.com/Duke-Engineering/que-ts/actions/workflows/coverage.yml/badge.svg)](https://github.com/Duke-Engineering/que-ts/actions/workflows/coverage.yml)
+[![Security](https://github.com/Duke-Engineering/que-ts/actions/workflows/security.yml/badge.svg)](https://github.com/Duke-Engineering/que-ts/actions/workflows/security.yml)
+[![npm version](https://badge.fury.io/js/que-ts.svg)](https://badge.fury.io/js/que-ts)
+
 A TypeScript job queue library for PostgreSQL, compatible with Ruby Que and que-go implementations.
 
 ## Features
@@ -20,7 +25,7 @@ npm install que-ts
 
 ### From GitHub (development)
 ```bash
-npm install github:USERNAME/que-ts#main
+npm install github:Duke-Engineering/que-ts#master
 ```
 
 **Note**: When installing from GitHub, the package will automatically build from TypeScript source using the `prepare` script.
@@ -49,7 +54,7 @@ If you encounter "Cannot find module 'que-ts'" errors when installing from GitHu
 
 4. **Alternative: Use specific tag**:
    ```bash
-   npm install github:USERNAME/que-ts#v1.0.0
+   npm install github:Duke-Engineering/que-ts#v1.0.0
    ```
 
 ## Quick Start
@@ -278,7 +283,7 @@ You can enqueue jobs in one language and process them in another, or run workers
 ### Official Implementations
 - **[Que (Ruby)](https://github.com/chanks/que)** - The original and most mature implementation
 - **[que-go](https://github.com/bgentry/que-go)** - Go implementation (unmaintained, but stable)
-- **que-ts** - This TypeScript/Node.js implementation
+- **[que-ts](https://github.com/Duke-Engineering/que-ts)** - This TypeScript/Node.js implementation
 
 ## Development
 
