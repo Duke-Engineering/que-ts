@@ -13,9 +13,44 @@ A TypeScript job queue library for PostgreSQL, compatible with Ruby Que and que-
 
 ## Installation
 
+### From npm (when published)
 ```bash
 npm install que-ts
 ```
+
+### From GitHub (development)
+```bash
+npm install github:USERNAME/que-ts#main
+```
+
+**Note**: When installing from GitHub, the package will automatically build from TypeScript source using the `prepare` script.
+
+### Troubleshooting GitHub Installation
+
+If you encounter "Cannot find module 'que-ts'" errors when installing from GitHub:
+
+1. **Check the installation completed successfully**:
+   ```bash
+   cd node_modules/que-ts
+   ls dist/  # Should show compiled JavaScript files
+   ```
+
+2. **Manual build if needed**:
+   ```bash
+   cd node_modules/que-ts
+   npm run build
+   ```
+
+3. **Verify installation**:
+   ```bash
+   cd node_modules/que-ts
+   node test-install.js
+   ```
+
+4. **Alternative: Use specific tag**:
+   ```bash
+   npm install github:USERNAME/que-ts#v1.0.0
+   ```
 
 ## Quick Start
 
