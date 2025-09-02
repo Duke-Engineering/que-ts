@@ -62,6 +62,8 @@ class Worker {
                             this.timeoutResolve = null;
                             resolve();
                         }, this.interval);
+                        // Allow process to exit even if timer is active
+                        this.timeoutId.unref();
                     });
                 }
             }
@@ -74,6 +76,8 @@ class Worker {
                             this.timeoutResolve = null;
                             resolve();
                         }, this.interval);
+                        // Allow process to exit even if timer is active
+                        this.timeoutId.unref();
                     });
                 }
             }
