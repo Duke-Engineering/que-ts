@@ -8,9 +8,10 @@ class Worker {
         this.running = false;
         this.shutdownPromise = null;
         this.timeoutId = null;
+        this.timeoutResolve = null;
         this.client = new client_1.Client(clientConfig);
         this.queue = options.queue || '';
-        this.interval = options.interval || 5000;
+        this.interval = options.interval || 60 * 1000;
     }
     register(jobClass, workFunc) {
         this.workMap[jobClass] = workFunc;
@@ -40,6 +41,11 @@ class Worker {
             clearTimeout(this.timeoutId);
             this.timeoutId = null;
         }
+        // Resolve any pending timeout promises
+        if (this.timeoutResolve) {
+            this.timeoutResolve();
+            this.timeoutResolve = null;
+        }
         if (this.shutdownPromise) {
             await this.shutdownPromise;
         }
@@ -51,7 +57,11 @@ class Worker {
                 const processed = await this.workOne();
                 if (!processed && this.running) {
                     await new Promise((resolve) => {
-                        this.timeoutId = setTimeout(resolve, this.interval);
+                        this.timeoutResolve = resolve;
+                        this.timeoutId = setTimeout(() => {
+                            this.timeoutResolve = null;
+                            resolve();
+                        }, this.interval);
                     });
                 }
             }
@@ -59,7 +69,11 @@ class Worker {
                 console.error('Worker error:', error);
                 if (this.running) {
                     await new Promise((resolve) => {
-                        this.timeoutId = setTimeout(resolve, this.interval);
+                        this.timeoutResolve = resolve;
+                        this.timeoutId = setTimeout(() => {
+                            this.timeoutResolve = null;
+                            resolve();
+                        }, this.interval);
                     });
                 }
             }

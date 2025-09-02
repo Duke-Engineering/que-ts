@@ -79,6 +79,8 @@ export class Worker {
               this.timeoutResolve = null;
               resolve();
             }, this.interval);
+            // Allow process to exit even if timer is active
+            this.timeoutId.unref();
           });
         }
       } catch (error) {
@@ -91,6 +93,8 @@ export class Worker {
               this.timeoutResolve = null;
               resolve();
             }, this.interval);
+            // Allow process to exit even if timer is active
+            this.timeoutId.unref();
           });
         }
       }

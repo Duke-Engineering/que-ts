@@ -1,20 +1,21 @@
-import { Pool } from 'pg';
+import { Pool } from "pg";
 
 export const TEST_DB_CONFIG = {
-  host: process.env.TEST_DB_HOST || 'localhost',
-  port: parseInt(process.env.TEST_DB_PORT || '5432'),
-  database: process.env.TEST_DB_NAME || 'que_test',
-  user: process.env.TEST_DB_USER || 'que_user',
-  password: process.env.TEST_DB_PASSWORD || 'que_password',
-  ssl: process.env.TEST_DB_SSL === 'true' ? true : false,
+  host: process.env.TEST_DB_HOST || "localhost",
+  port: parseInt(process.env.TEST_DB_PORT || "5433"),
+  database: process.env.TEST_DB_NAME || "que_test",
+  user: process.env.TEST_DB_USER || "que_user",
+  password: process.env.TEST_DB_PASSWORD || "que_password",
+  ssl: process.env.TEST_DB_SSL === "true" ? true : false,
 };
 
 export async function setupTestDatabase(): Promise<Pool> {
+  console.log("TEST_DB_CONFIG", TEST_DB_CONFIG);
   const pool = new Pool(TEST_DB_CONFIG);
-  
+
   // Test connection
   try {
-    await pool.query('SELECT 1');
+    await pool.query("SELECT 1");
   } catch (error) {
     throw new Error(`Failed to connect to test database: ${error}`);
   }
@@ -39,6 +40,6 @@ export async function setupTestDatabase(): Promise<Pool> {
 }
 
 export async function cleanupTestDatabase(pool: Pool): Promise<void> {
-  await pool.query('TRUNCATE que_jobs');
+  await pool.query("TRUNCATE que_jobs");
   await pool.end();
 }

@@ -12,7 +12,7 @@ class Que {
 
   constructor() {
     this.client = new Client(TEST_DB_CONFIG);
-    this.worker = new Worker(TEST_DB_CONFIG, { interval: 1000 });
+    this.worker = new Worker(TEST_DB_CONFIG, { interval: 100 }); // Shorter interval for faster testing
 
     process.on('SIGINT', async () => {
       console.log('Shutting down worker...');
