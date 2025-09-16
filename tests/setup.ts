@@ -10,7 +10,6 @@ export const TEST_DB_CONFIG = {
 };
 
 export async function setupTestDatabase(): Promise<Pool> {
-  console.log("TEST_DB_CONFIG", TEST_DB_CONFIG);
   const pool = new Pool(TEST_DB_CONFIG);
 
   // Test connection
