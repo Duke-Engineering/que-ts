@@ -11,7 +11,7 @@ export interface JSONObject {
   [key: string]: JSONValue;
 }
 
-export interface JSONArray extends Array<JSONValue> { }
+export interface JSONArray extends Array<JSONValue> {}
 
 export interface Job {
   id: number;
@@ -58,6 +58,7 @@ export interface WorkerOptions {
   queue?: string;
   interval?: number;
   maxAttempts?: number;
+  concurrency?: number;
 }
 
 export interface JobRow {

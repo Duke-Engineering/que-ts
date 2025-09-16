@@ -7,6 +7,7 @@ export declare class Worker {
     private running;
     private shutdownPromise;
     private timeoutId;
+    private timeoutResolve;
     constructor(clientConfig?: ClientConfig, options?: WorkerOptions);
     register(jobClass: string, workFunc: WorkFunction): void;
     work(): Promise<void>;

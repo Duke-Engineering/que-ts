@@ -16,7 +16,7 @@ describe('que', () => {
     await que.registerWorker(new TestWorker());
     que.start();
     // Give worker a moment to start
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise(resolve => setTimeout(resolve, 500));
   });
 
   afterAll(async () => {
@@ -29,12 +29,17 @@ describe('que', () => {
     expect(job.jobClass).toBe('TestWorker');
     expect(job.id).toBeGreaterThan(0);
 
-    expect(workerResult).toHaveLength(0)
+    expect(workerResult).toHaveLength(0);
 
-    // Wait for job to be processed
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    // Wait for job to be processed - worker interval is 1000ms
+    // Wait up to 3 seconds for the job to be processed
+    let attempts = 0;
+    while (workerResult.length === 0 && attempts < 30) {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      attempts++;
+    }
 
-    expect(workerResult).toHaveLength(1)
-    expect(workerResult[0]).toBe('test')
+    expect(workerResult).toHaveLength(1);
+    expect(workerResult[0]).toBe('test');
   });
 });

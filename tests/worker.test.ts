@@ -16,6 +16,8 @@ describe('Worker', () => {
     client = new Client(TEST_DB_CONFIG);
     worker = new Worker(TEST_DB_CONFIG);
     await pool.query('TRUNCATE que_jobs');
+    // Small delay to ensure TRUNCATE completes
+    await new Promise(resolve => setTimeout(resolve, 50));
   });
 
   afterEach(async () => {
@@ -43,6 +45,10 @@ describe('Worker', () => {
 
   describe('workOne', () => {
     it('should return false when no jobs available', async () => {
+      // Ensure table is truly empty before test
+      const checkEmpty = await pool.query('SELECT * FROM que_jobs');
+      expect(checkEmpty.rows.length).toBe(0);
+      
       const result = await worker.workOne();
       expect(result).toBe(false);
     });
