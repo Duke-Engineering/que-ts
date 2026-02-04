@@ -1,3 +1,5 @@
+import { ConnectionOptions } from "tls";
+
 // JSON type that represents valid JSON values
 export type JSONValue =
   | string
@@ -11,7 +13,7 @@ export interface JSONObject {
   [key: string]: JSONValue;
 }
 
-export interface JSONArray extends Array<JSONValue> { }
+export interface JSONArray extends Array<JSONValue> {}
 
 export interface Job {
   id: number;
@@ -50,7 +52,7 @@ export interface ClientConfig {
   database?: string;
   user?: string;
   password?: string;
-  ssl?: boolean;
+  ssl?: boolean | ConnectionOptions | undefined;
   maxConnections?: number;
 }
 
